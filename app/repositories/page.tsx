@@ -4,24 +4,34 @@ import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
 export default function Repositories() {
-        const [repos, setRepos] = useState([]);
-        const { getToken } = useAuth();
-        const router = useRouter();
-        
-        useEffect(() => {
-                const fetchRepos = async () => {
-                const token = await getToken();
-                fetch("http://localhost:8080/repos", {
-                        headers: { Authorization: `Bearer ${token}` }
-                })
-                .then(res => res.json())
-                .then(data => setRepos(data));
-        };
+  const [repos, setRepos] = useState([]);
+  const { getToken } = useAuth();
+  const router = useRouter();
+  const [healthScores, setHealthScores] = useState<{[key: string]: any}>({});
+
+  useEffect(() => {
+    const fetchRepos = async () => {
+      const token = await getToken();
+      fetch("http://localhost:8080/repos", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => setRepos(data));
+    };
     fetchRepos();
   }, []);
 
+  const fetchHealthScore = async (repoId: string) => {
+    const token = await getToken();
+    fetch(`http://localhost:8080/healthscore/${repoId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(data => setHealthScores(prev => ({ ...prev, [repoId]: data })));
+  };
+
   return (
-  <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Inter, system-ui, sans-serif' }}>
 
       {/* Sidebar */}
       <div style={{ width: '240px', backgroundColor: '#0f172a', display: 'flex', flexDirection: 'column', padding: '24px 16px' }}>
@@ -69,21 +79,35 @@ export default function Repositories() {
               </thead>
               <tbody>
                 {repos.map((repo: any, index: number) => (
-                  <tr key={repo.id} style={{ borderTop: '1px solid #e2e8f0', backgroundColor: index % 2 === 0 ? 'white' : '#f8fafc' }}>
-                    <td style={{ padding: '16px 24px', fontSize: '14px', fontWeight: '500', color: '#0f172a' }}>{repo.name}</td>
-                    <td style={{ padding: '16px 24px' }}>
-                      <span style={{ backgroundColor: '#dbeafe', color: '#1d4ed8', padding: '2px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: '500' }}>
-                        {repo.platform}
-                      </span>
-                    </td>
-                    <td style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>{repo.githubUrl}</td>
-                    <td style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>{new Date(repo.createdAt).toLocaleDateString()}</td>
-                    <td style={{ padding: '16px 24px' }}>
-                      <button style={{ backgroundColor: '#0f172a', color: 'white', border: 'none', padding: '7px 14px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}>
-                        View Score
-                      </button>
-                    </td>
-                  </tr>
+                  <>
+                    <tr key={repo.id} style={{ borderTop: '1px solid #e2e8f0', backgroundColor: index % 2 === 0 ? 'white' : '#f8fafc' }}>
+                      <td style={{ padding: '16px 24px', fontSize: '14px', fontWeight: '500', color: '#0f172a' }}>{repo.name}</td>
+                      <td style={{ padding: '16px 24px' }}>
+                        <span style={{ backgroundColor: '#dbeafe', color: '#1d4ed8', padding: '2px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: '500' }}>
+                          {repo.platform}
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>{repo.githubUrl}</td>
+                      <td style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>{new Date(repo.createdAt).toLocaleDateString()}</td>
+                      <td style={{ padding: '16px 24px' }}>
+                        <button onClick={() => fetchHealthScore(repo.id)} style={{ backgroundColor: '#0f172a', color: 'white', border: 'none', padding: '7px 14px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}>
+                          View Score
+                        </button>
+                      </td>
+                    </tr>
+                    {healthScores[repo.id] && (
+                      <tr key={`score-${repo.id}`}>
+                        <td colSpan={5} style={{ padding: '12px 24px', backgroundColor: '#f0fdf4', borderTop: '1px solid #e2e8f0' }}>
+                          <span style={{ color: '#16a34a', fontWeight: '600' }}>Health Score: {healthScores[repo.id].healthScore}</span>
+                          <span style={{ color: '#64748b', fontSize: '13px', marginLeft: '16px' }}>
+                            ✓ {healthScores[repo.id].positiveCount} positive · 
+                            ✗ {healthScores[repo.id].negativeCount} negative · 
+                            — {healthScores[repo.id].neutralCount} neutral
+                          </span>
+                        </td>
+                      </tr>
+                    )}
+                  </>
                 ))}
               </tbody>
             </table>
