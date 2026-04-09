@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
@@ -40,7 +40,7 @@ export default function Repositories() {
         </div>
         <nav>
           {['Dashboard', 'Repositories', 'Reports', 'Settings'].map(item => (
-            <div key={item} onClick={() => item === 'Dashboard' ? router.push('/dashboard') : null} style={{
+            <div key={item} onClick={() => router.push(`/${item.toLowerCase()}`)} style={{
               padding: '10px 12px',
               borderRadius: '6px',
               color: item === 'Repositories' ? 'white' : '#94a3b8',
@@ -79,8 +79,8 @@ export default function Repositories() {
               </thead>
               <tbody>
                 {repos.map((repo: any, index: number) => (
-                  <>
-                    <tr key={repo.id} style={{ borderTop: '1px solid #e2e8f0', backgroundColor: index % 2 === 0 ? 'white' : '#f8fafc' }}>
+                  <React.Fragment key={repo.id}>
+                    <tr style={{ borderTop: '1px solid #e2e8f0', backgroundColor: index % 2 === 0 ? 'white' : '#f8fafc' }}>
                       <td style={{ padding: '16px 24px', fontSize: '14px', fontWeight: '500', color: '#0f172a' }}>{repo.name}</td>
                       <td style={{ padding: '16px 24px' }}>
                         <span style={{ backgroundColor: '#dbeafe', color: '#1d4ed8', padding: '2px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: '500' }}>
@@ -92,6 +92,9 @@ export default function Repositories() {
                       <td style={{ padding: '16px 24px' }}>
                         <button onClick={() => fetchHealthScore(repo.id)} style={{ backgroundColor: '#0f172a', color: 'white', border: 'none', padding: '7px 14px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}>
                           View Score
+                        </button>
+                        <button onClick={() => router.push(`/commits?repoId=${repo.id}`)} style={{ backgroundColor: '#0f172a', color: 'white', border: 'none', padding: '7px 14px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: '500', marginLeft: '8px' }}>
+                          View Commits
                         </button>
                       </td>
                     </tr>
@@ -107,7 +110,7 @@ export default function Repositories() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

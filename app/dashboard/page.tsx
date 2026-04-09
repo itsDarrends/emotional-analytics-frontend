@@ -1,12 +1,11 @@
 "use client"
 import { useState, useEffect } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { useAuth, UserButton } from "@clerk/nextjs";
 
 export default function Dashboard() {
   const [repos, setRepos] = useState([]);
   const { getToken } = useAuth();
-  const { user } = useUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -31,7 +30,7 @@ export default function Dashboard() {
         </div>
         <nav>
           {['Dashboard', 'Repositories', 'Reports', 'Settings'].map(item => (
-            <div key={item} onClick={() => item === 'Repositories' ? router.push('/repositories') : null} style={{
+            <div key={item} onClick={() => router.push(`/${item.toLowerCase()}`)} style={{
               padding: '10px 12px',
               borderRadius: '6px',
               color: item === 'Dashboard' ? 'white' : '#94a3b8',
@@ -40,8 +39,8 @@ export default function Dashboard() {
               fontSize: '14px',
               cursor: 'pointer'
             }}>
-            {item}
-          </div>
+              {item}
+            </div>
           ))}
         </nav>
       </div>
@@ -55,9 +54,7 @@ export default function Dashboard() {
             <h1 style={{ fontSize: '20px', fontWeight: '600', color: '#0f172a', margin: 0 }}>Dashboard</h1>
             <p style={{ fontSize: '13px', color: '#64748b', margin: '2px 0 0 0' }}>Track your teams emotional health</p>
           </div>
-          <div style={{ fontSize: '14px', color: '#475569' }}>
-            {user?.emailAddresses[0]?.emailAddress}
-          </div>
+          <UserButton />
         </div>
 
         {/* Content */}
@@ -103,8 +100,10 @@ export default function Dashboard() {
                     </td>
                     <td style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>{repo.githubUrl}</td>
                     <td style={{ padding: '16px 24px' }}>
-                      <button style={{ backgroundColor: '#0f172a', color: 'white', border: 'none', padding: '7px 14px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}>
-                        View Score
+                      <button 
+                        onClick={() => router.push('/repositories')}
+                        style={{ backgroundColor: '#0f172a', color: 'white', border: 'none', padding: '7px 14px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}>
+                        View Details
                       </button>
                     </td>
                   </tr>
@@ -112,7 +111,6 @@ export default function Dashboard() {
               </tbody>
             </table>
           </div>
-
         </div>
       </div>
     </div>
