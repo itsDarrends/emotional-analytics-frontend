@@ -7,23 +7,41 @@ export default function Dashboard() {
   const [repos, setRepos] = useState([]);
   const { getToken } = useAuth();
   const router = useRouter();
+  const [totalCommits, setTotalCommits] = useState(0);
+  const [avgHealthScore, setAvgHealthScore] = useState(0);
 
   useEffect(() => {
-    const fetchRepos = async () => {
+    const fetchData = async () => {
       const token = await getToken();
-      fetch("http://localhost:8080/repos", {
+      
+      const reposRes = await fetch("http://localhost:8080/repos", {
         headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(res => res.json())
-      .then(data => setRepos(data));
+      });
+      const reposData = await reposRes.json();
+      setRepos(reposData);
+
+      const scorePromises = reposData.map((repo: any) =>
+        fetch(`http://localhost:8080/healthscore/${repo.id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).then(res => res.json())
+      );
+
+      const scores = await Promise.all(scorePromises);
+
+      const total = scores.reduce((sum: number, s: any) => sum + (s.totalCommits || 0), 0);
+      const validScores = scores.filter((s: any) => s.healthScore && !isNaN(s.healthScore));
+      const avg = validScores.length > 0 ? validScores.reduce((sum: number, s: any) => sum + s.healthScore, 0) / validScores.length : 0;
+
+      setTotalCommits(total);
+      setAvgHealthScore(Math.round(avg * 10) / 10);
     };
-    fetchRepos();
+
+    fetchData();
   }, []);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Inter, system-ui, sans-serif' }}>
       
-      {/* Sidebar */}
       <div style={{ width: '240px', backgroundColor: '#0f172a', display: 'flex', flexDirection: 'column', padding: '24px 16px' }}>
         <div style={{ color: 'white', fontSize: '16px', fontWeight: '700', marginBottom: '32px', padding: '0 8px' }}>
           Emotional Analytics
@@ -45,10 +63,8 @@ export default function Dashboard() {
         </nav>
       </div>
 
-      {/* Main content */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         
-        {/* Top header */}
         <div style={{ backgroundColor: 'white', borderBottom: '1px solid #e2e8f0', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <h1 style={{ fontSize: '20px', fontWeight: '600', color: '#0f172a', margin: 0 }}>Dashboard</h1>
@@ -57,15 +73,13 @@ export default function Dashboard() {
           <UserButton />
         </div>
 
-        {/* Content */}
         <div style={{ padding: '32px' }}>
           
-          {/* Stats row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '32px' }}>
             {[
               { label: 'Tracked Repos', value: repos.length, color: '#0f172a' },
-              { label: 'Total Commits', value: '247', color: '#0f172a' },
-              { label: 'Avg Health Score', value: '52.4', color: '#16a34a' },
+              { label: 'Total Commits', value: totalCommits, color: '#0f172a' },
+              { label: 'Avg Health Score', value: avgHealthScore, color: '#16a34a' },
             ].map(stat => (
               <div key={stat.label} style={{ backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '20px 24px' }}>
                 <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 8px 0' }}>{stat.label}</p>
@@ -74,7 +88,6 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* Repos table */}
           <div style={{ backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
             <div style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0' }}>
               <h2 style={{ fontSize: '15px', fontWeight: '600', color: '#0f172a', margin: 0 }}>Repositories</h2>
