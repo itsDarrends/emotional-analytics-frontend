@@ -1,11 +1,11 @@
 "use client"
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 
-export default function Commits() {
-  const [commits, setCommits] = useState([]);
+function CommitsContent() {
+  const [commits, setCommits] = useState<any[]>([]);
   const searchParams = useSearchParams();
   const repoId = searchParams.get("repoId");
   const { getToken } = useAuth();
@@ -14,14 +14,14 @@ export default function Commits() {
   useEffect(() => {
     const fetchCommits = async () => {
       const token = await getToken();
-      fetch(`http://localhost:8080/commits/${repoId}`, {
+      const res = await fetch(`http://localhost:8080/commits/${repoId}`, {
         headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(res => res.json())
-      .then(data => setCommits(data));
+      });
+      const data = await res.json();
+      setCommits(data);
     };
     fetchCommits();
-  }, []);
+  }, [getToken, repoId]);
 
   const getSentimentStyle = (label: string) => {
     if (label === 'POSITIVE') return { backgroundColor: '#dcfce7', color: '#16a34a' };
@@ -101,5 +101,13 @@ export default function Commits() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Commits() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, system-ui, sans-serif', color: '#64748b' }}>Loading...</div>}>
+      <CommitsContent />
+    </Suspense>
   );
 }

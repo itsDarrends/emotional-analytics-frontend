@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth, UserButton } from "@clerk/nextjs";
 
 export default function Dashboard() {
-  const [repos, setRepos] = useState([]);
+  const [repos, setRepos] = useState<any[]>([]);
   const { getToken } = useAuth();
   const router = useRouter();
   const [totalCommits, setTotalCommits] = useState(0);
@@ -13,7 +13,6 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       const token = await getToken();
-      
       const reposRes = await fetch("http://localhost:8080/repos", {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -37,7 +36,7 @@ export default function Dashboard() {
     };
 
     fetchData();
-  }, []);
+  }, [getToken]);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Inter, system-ui, sans-serif' }}>

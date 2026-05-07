@@ -4,7 +4,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
 export default function Repositories() {
-  const [repos, setRepos] = useState([]);
+  const [repos, setRepos] = useState<any[]>([]);
   const { getToken } = useAuth();
   const router = useRouter();
   const [healthScores, setHealthScores] = useState<{[key: string]: any}>({});
@@ -12,22 +12,22 @@ export default function Repositories() {
   useEffect(() => {
     const fetchRepos = async () => {
       const token = await getToken();
-      fetch("http://localhost:8080/repos", {
+      const res = await fetch("http://localhost:8080/repos", {
         headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(res => res.json())
-      .then(data => setRepos(data));
+      });
+      const data = await res.json();
+      setRepos(data);
     };
     fetchRepos();
-  }, []);
+  }, [getToken]);
 
   const fetchHealthScore = async (repoId: string) => {
     const token = await getToken();
-    fetch(`http://localhost:8080/healthscore/${repoId}`, {
+    const res = await fetch(`http://localhost:8080/healthscore/${repoId}`, {
       headers: { Authorization: `Bearer ${token}` }
-    })
-    .then(res => res.json())
-    .then(data => setHealthScores(prev => ({ ...prev, [repoId]: data })));
+    });
+    const data = await res.json();
+    setHealthScores(prev => ({ ...prev, [repoId]: data }));
   };
 
   return (
