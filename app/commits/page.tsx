@@ -84,14 +84,14 @@ function CommitsContent() {
               <tbody>
                 {commits.map((commit: any, index: number) => (
                   <tr key={commit.id} style={{ borderTop: '1px solid #e2e8f0', backgroundColor: index % 2 === 0 ? 'white' : '#f8fafc' }}>
-                    <td style={{ padding: '16px 24px', fontSize: '13px', color: '#0f172a', maxWidth: '400px' }}>{commit.message}</td>
+                    <td style={{ padding: '16px 24px', fontSize: '13px', color: '#0f172a', maxWidth: '400px' }}>{commit.message.split('\n')[0]}</td>
                     <td style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>{commit.authorName}</td>
                     <td style={{ padding: '16px 24px' }}>
-                      <span style={{ ...getSentimentStyle(commit.sentimentLabel), padding: '2px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: '500' }}>
-                        {commit.sentimentLabel}
+                      <span style={{ ...getSentimentStyle(commit.sentimentLabel), padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: '600' }}>
+                        {commit.sentimentLabel || 'NEUTRAL'}
                       </span>
                     </td>
-                    <td style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>{commit.sentimentScore}</td>
+                    <td style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>{commit.sentimentScore ?? 0}</td>
                     <td style={{ padding: '16px 24px', fontSize: '13px', color: '#64748b' }}>{new Date(commit.committedAt).toLocaleDateString()}</td>
                   </tr>
                 ))}
